@@ -26,4 +26,8 @@ public class UserMeal {
     public int getCalories() {
         return calories;
     }
+
+    public int getDay() {
+        return dateTime.getDayOfMonth();
+    }
 }
