@@ -1,14 +1,20 @@
 package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
-import ru.javawebinar.topjava.dao.*;
-import ru.javawebinar.topjava.model.*;
+import ru.javawebinar.topjava.dao.MealsDb;
+import ru.javawebinar.topjava.dao.MealsDbImp;
+import ru.javawebinar.topjava.model.Meal;
+import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
 
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -16,68 +22,73 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 public class MealServlet extends HttpServlet {
     private static final Logger log = getLogger(MealServlet.class);
-    private static String INSERT_OR_EDIT = "meal.jsp";
-    private static String LIST_MEAL = "meals.jsp";
-    private final MealsDB dbImp = new MealsDBImp();
-    private final int NOT_EXISTING_ID = 0;
+    private static final String INSERT_OR_EDIT = "meal.jsp";
+    private static final String LIST_MEAL = "meals.jsp";
+    private static final String GET_ALL = "meals?action=getAll";
+    private static final Long NOT_EXISTING_ID = 0L;
+    private static final int DEFAULT_CALORIES_PER_DAY = 2000;
+    private MealsDb dbImp;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        dbImp = new MealsDbImp();
+    }
 
     @Override
     protected void doGet(HttpServletRequest request,
                          HttpServletResponse response)
             throws ServletException, IOException {
-        log.debug("doGet");
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "getAll";
-        }
-        String forward;
+        String action = request.getParameter("action") == null ?
+                "getAll" : request.getParameter("action");
+        log.debug("method: doGet, action: " + action);
 
-        if (action.equalsIgnoreCase("getAll")) {
-            forward = LIST_MEAL;
-            requestSetAttributeMealsTo(request);
-        } else if (action.equalsIgnoreCase("delete")) {
-            forward = LIST_MEAL;
-            dbImp.delete(Integer.parseInt(request.getParameter("mealId")));
-            requestSetAttributeMealsTo(request);
-        } else if (action.equalsIgnoreCase("edit")) {
-            forward = INSERT_OR_EDIT;
-            int mealId = Integer.parseInt(request.getParameter("mealId"));
-            request.setAttribute("mealId", mealId);
-            request.setAttribute("meal", dbImp.getById(mealId));
-        } else {
-            forward = INSERT_OR_EDIT;
-            request.setAttribute("meal", new Meal(LocalDateTime.now().truncatedTo(ChronoUnit.HOURS),
-                    "Описание", 1000, NOT_EXISTING_ID));
+        switch (action) {
+            case "insert":
+            case "edit":
+                Meal meal;
+                if (action.equalsIgnoreCase("insert")) {
+                    meal = new Meal(NOT_EXISTING_ID,
+                            LocalDateTime.now().truncatedTo(ChronoUnit.HOURS),
+                            "Описание", 1000);
+                } else {
+                    meal = dbImp.getById(Long.parseLong(request.getParameter("mealId")));
+                }
+                log.debug("mealId: " + meal.getId());
+                request.setAttribute("meal", meal);
+                request.getRequestDispatcher(INSERT_OR_EDIT).forward(request, response);
+                break;
+            case "delete":
+                dbImp.delete(Long.parseLong(request.getParameter("mealId")));
+                response.sendRedirect(GET_ALL);
+                break;
+            default:
+                List<MealTo> mealsTo = MealsUtil.filteredByStreams(dbImp.getAll(),
+                        LocalTime.MIN, LocalTime.MAX, DEFAULT_CALORIES_PER_DAY);
+                request.setAttribute("mealsTo", mealsTo);
+                request.getRequestDispatcher(LIST_MEAL).forward(request, response);
+                break;
         }
-        RequestDispatcher view = request.getRequestDispatcher(forward);
-        view.forward(request, response);
     }
 
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
-            throws ServletException, IOException {
-        log.debug("doPost");
+            throws IOException {
+        log.debug("method: doPost");
         request.setCharacterEncoding("UTF-8");
         LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime"));
         String description = request.getParameter("description");
         int calories = Integer.parseInt((request.getParameter("calories")));
-        int mealId = Integer.parseInt(request.getParameter("mealId"));
-        Meal meal = new Meal(dateTime, description, calories, mealId);
+        Long mealId = Long.parseLong(request.getParameter("mealId"));
+        Meal meal = new Meal(mealId, dateTime, description, calories);
+        log.debug("mealId: " + mealId);
 
-        if (mealId == NOT_EXISTING_ID) {
+        if (mealId.equals(NOT_EXISTING_ID)) {
             dbImp.add(meal);
         } else {
-            dbImp.update(mealId, meal);
+            dbImp.edit(meal);
         }
 
-        requestSetAttributeMealsTo(request);
-        RequestDispatcher view = request.getRequestDispatcher(LIST_MEAL);
-        view.forward(request, response);
-    }
-
-    private void requestSetAttributeMealsTo(HttpServletRequest request) {
-        List<MealTo> mealsTo =
-                MealsUtil.filteredByStreams(dbImp.getAll(), LocalTime.MIN, LocalTime.MAX, 2000);
-        request.setAttribute("mealsTo", mealsTo);
+        response.sendRedirect(GET_ALL);
     }
 }

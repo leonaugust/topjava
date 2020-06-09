@@ -7,26 +7,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class MealsDBImp implements MealsDB {
-    private Map<Integer, Meal> meals = new ConcurrentHashMap<>();
-    public static AtomicInteger idCounter = new AtomicInteger(1);
+public class MealsDbImp implements MealsDb {
+    private Map<Long, Meal> meals = new ConcurrentHashMap<>();
+    private AtomicLong idCounter = new AtomicLong(1);
 
-    public MealsDBImp() {
+    public MealsDbImp() {
         List<Meal> tempMeals = MealsUtil.getHardcodedMeals();
         tempMeals.forEach(this::add);
     }
 
     @Override
-    public void add(Meal meal) {
-        meal.setId(idCounter.get());
-        meals.put(meal.getId(), meal);
-        idCounter.getAndAdd(1);
+    public Meal add(Meal meal) {
+        meal.setId(idCounter.getAndIncrement());
+        return meals.put(meal.getId(), meal);
     }
 
     @Override
-    public Meal getById(int id) {
+    public Meal getById(Long id) {
         return meals.get(id);
     }
 
@@ -36,14 +35,12 @@ public class MealsDBImp implements MealsDB {
     }
 
     @Override
-    public void update(int id, Meal meal) {
-        delete(id);
-        meal.setId(id);
-        add(meal);
+    public Meal edit(Meal meal) {
+        return meals.put(meal.getId(), meal);
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(Long id) {
         meals.remove(id);
     }
 }
