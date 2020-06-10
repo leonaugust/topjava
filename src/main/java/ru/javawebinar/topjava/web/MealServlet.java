@@ -62,14 +62,17 @@ public class MealServlet extends HttpServlet {
                 response.sendRedirect("meals");
                 break;
             default:
-                forwardMeals(request, response);
+                List<MealTo> mealsTo = MealsUtil.filteredByStreams(dbImp.getAll(),
+                        LocalTime.MIN, LocalTime.MAX, DEFAULT_CALORIES_PER_DAY);
+                request.setAttribute("mealsTo", mealsTo);
+                request.getRequestDispatcher(LIST_MEAL).forward(request, response);
                 break;
         }
     }
 
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
-            throws IOException, ServletException {
+            throws IOException {
         log.debug("method: doPost");
         request.setCharacterEncoding("UTF-8");
         LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime"));
@@ -85,15 +88,6 @@ public class MealServlet extends HttpServlet {
             dbImp.edit(meal);
         }
 
-        forwardMeals(request, response);
-    }
-
-    private void forwardMeals(HttpServletRequest request,
-                              HttpServletResponse response)
-            throws ServletException, IOException {
-        List<MealTo> mealsTo = MealsUtil.filteredByStreams(dbImp.getAll(),
-                LocalTime.MIN, LocalTime.MAX, DEFAULT_CALORIES_PER_DAY);
-        request.setAttribute("mealsTo", mealsTo);
-        request.getRequestDispatcher(LIST_MEAL).forward(request, response);
+        response.sendRedirect("meals");
     }
 }

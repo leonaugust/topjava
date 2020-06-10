@@ -36,12 +36,7 @@ public class MealsDbImp implements MealsDb {
 
     @Override
     public Meal edit(Meal meal) {
-        Long id = meal.getId();
-        if (meals.containsKey(id)) {
-            return meals.put(id, meal);
-        } else {
-            return null;
-        }
+        return meals.computeIfPresent(meal.getId(), (key, value) -> value);
     }
 
     @Override
