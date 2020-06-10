@@ -23,8 +23,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MealServlet extends HttpServlet {
     private static final Logger log = getLogger(MealServlet.class);
     private static final String INSERT_OR_EDIT = "meal.jsp";
-    private static final String LIST_MEAL = "meals.jsp";
-    private static final String GET_ALL = "meals?action=getAll";
+    private static final String LIST_MEAL = "/meals.jsp";
     private static final Long NOT_EXISTING_ID = 0L;
     private static final int DEFAULT_CALORIES_PER_DAY = 2000;
     private MealsDb dbImp;
@@ -47,48 +46,54 @@ public class MealServlet extends HttpServlet {
             case "insert":
             case "edit":
                 Meal meal;
-                if (action.equalsIgnoreCase("insert")) {
+                if (action.equals("insert")) {
                     meal = new Meal(NOT_EXISTING_ID,
                             LocalDateTime.now().truncatedTo(ChronoUnit.HOURS),
                             "Описание", 1000);
                 } else {
-                    meal = dbImp.getById(Long.parseLong(request.getParameter("mealId")));
+                    meal = dbImp.getById(Long.parseLong(request.getParameter("id")));
                 }
-                log.debug("mealId: " + meal.getId());
+                log.debug("id: " + meal.getId());
                 request.setAttribute("meal", meal);
                 request.getRequestDispatcher(INSERT_OR_EDIT).forward(request, response);
                 break;
             case "delete":
-                dbImp.delete(Long.parseLong(request.getParameter("mealId")));
-                response.sendRedirect(GET_ALL);
+                dbImp.delete(Long.parseLong(request.getParameter("id")));
+                response.sendRedirect("meals");
                 break;
             default:
-                List<MealTo> mealsTo = MealsUtil.filteredByStreams(dbImp.getAll(),
-                        LocalTime.MIN, LocalTime.MAX, DEFAULT_CALORIES_PER_DAY);
-                request.setAttribute("mealsTo", mealsTo);
-                request.getRequestDispatcher(LIST_MEAL).forward(request, response);
+                forwardMeals(request, response);
                 break;
         }
     }
 
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
-            throws IOException {
+            throws IOException, ServletException {
         log.debug("method: doPost");
         request.setCharacterEncoding("UTF-8");
         LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime"));
         String description = request.getParameter("description");
         int calories = Integer.parseInt((request.getParameter("calories")));
-        Long mealId = Long.parseLong(request.getParameter("mealId"));
-        Meal meal = new Meal(mealId, dateTime, description, calories);
-        log.debug("mealId: " + mealId);
+        Long id = Long.parseLong(request.getParameter("id"));
+        Meal meal = new Meal(id, dateTime, description, calories);
+        log.debug("id: " + id);
 
-        if (mealId.equals(NOT_EXISTING_ID)) {
+        if (id.equals(NOT_EXISTING_ID)) {
             dbImp.add(meal);
         } else {
             dbImp.edit(meal);
         }
 
-        response.sendRedirect(GET_ALL);
+        forwardMeals(request, response);
+    }
+
+    private void forwardMeals(HttpServletRequest request,
+                              HttpServletResponse response)
+            throws ServletException, IOException {
+        List<MealTo> mealsTo = MealsUtil.filteredByStreams(dbImp.getAll(),
+                LocalTime.MIN, LocalTime.MAX, DEFAULT_CALORIES_PER_DAY);
+        request.setAttribute("mealsTo", mealsTo);
+        request.getRequestDispatcher(LIST_MEAL).forward(request, response);
     }
 }

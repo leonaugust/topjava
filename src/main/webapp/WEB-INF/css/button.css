@@ -1,0 +1,21 @@
+.button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    font-size: 18px;
+    margin: auto;
+}
+
+.redButton {
+    background-color: #f44336;
+    width: 100%;
+}
+
+.blueButton {
+    background-color: #008CBA;
+    width: 100%;
+}

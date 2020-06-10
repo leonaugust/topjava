@@ -12,20 +12,20 @@
     <jsp:useBean id="meal" scope="request" type="ru.javawebinar.topjava.model.Meal"/>
     <form method="POST" action='meals' name="frmAddMeal">
         <label>
-            <input type="hidden" name="mealId"
-                   value="<c:out value="${meal.id}" />"/>
+            <input type="hidden" name="id"
+                   value="${meal.id}"/>
         </label> <br/>
         Date/Time : <label>
         <input type="datetime-local" name="dateTime"
-               value="<c:out value="${meal.dateTime}" />"/>
+               value="${meal.dateTime}"/>
     </label> <br/>
         Description : <label>
         <input type="text" name="description"
-               value="<c:out value="${meal.description}" />"/>
+               value="${meal.description}"/>
     </label> <br/>
         Calories : <label>
         <input type="number" name="calories"
-               value="<c:out value="${meal.calories}" />"/>
+               value="${meal.calories}"/>
     </label> <br/>
         <input type="submit" value="Submit"/>
     </form>

@@ -1,0 +1,23 @@
+table, th, td {
+    border: 2px solid black;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+    height: 5%;
+    font-family: optima, sans-serif;
+    font-size: 15px;
+}
+
+th {
+    width: 20%;
+}
+
+.darkgreen {
+    color: darkgreen;
+    background-color: #C0C0C0;
+}
+
+.crimson {
+    color: crimson;
+}

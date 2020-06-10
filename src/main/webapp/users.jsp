@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 <html lang="ru">
 <head>
-    <link rel="shortcut icon" href="calories.png" type="image/x-icon">
     <title>Users</title>
 </head>
 <body>
