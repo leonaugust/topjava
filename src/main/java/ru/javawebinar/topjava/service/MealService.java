@@ -1,14 +1,13 @@
 package ru.javawebinar.topjava.service;
 
 import org.springframework.stereotype.Service;
-import ru.javawebinar.topjava.model.Filter;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
-import ru.javawebinar.topjava.to.MealTo;
 
+import java.time.LocalDate;
 import java.util.List;
 
-import static ru.javawebinar.topjava.util.ValidationUtil.*;
+import static ru.javawebinar.topjava.util.ValidationUtil.checkNotFoundWithId;
 
 @Service
 public class MealService {
@@ -39,7 +38,7 @@ public class MealService {
         return repository.getAll(userId);
     }
 
-    public List<MealTo> getAllFiltered(int userId, Filter filter, int caloriesPerDay) {
-        return repository.getAllFiltered(userId, filter, caloriesPerDay);
+    public List<Meal> getFilteredByDates(int userId, LocalDate startDate, LocalDate endDate) {
+        return repository.getFilteredByDates(userId, startDate, endDate);
     }
 }

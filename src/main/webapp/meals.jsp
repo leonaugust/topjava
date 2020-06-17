@@ -18,24 +18,27 @@
 </head>
 <body>
 <section>
-    <form method="post" action="meals?action=applyFilter">
+    <form method="get" action="meals">
+        <label>
+            <input hidden name="action" value="applyFilter">
+        </label>
         От даты (включая)
         <label>
-            <input type="date" value="${filter.startDate}" name="startDate">
+            <input type="date" value="${param.startDate}" name="startDate">
         </label>
         До даты (включая)
         <label>
-            <input type="date" value="${filter.endDate}" name="endDate">
+            <input type="date" value="${param.endDate}" name="endDate">
         </label>
         <br>
         <br>
         От времени (включая)
         <label>
-            <input type="time" value="${filter.startTime}" name="startTime">
+            <input type="time" value="${param.startTime}" name="startTime">
         </label>
         До времени (исключая)
         <label>
-            <input type="time" value="${filter.endTime}" name="endTime">
+            <input type="time" value="${param.endTime}" name="endTime">
         </label>
         <button type="submit">Find</button>
     </form>

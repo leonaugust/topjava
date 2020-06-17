@@ -3,16 +3,19 @@ package ru.javawebinar.topjava.web.meal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import ru.javawebinar.topjava.model.Filter;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
-import ru.javawebinar.topjava.util.exception.NotFoundException;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
+import static ru.javawebinar.topjava.util.MealsUtil.getFilteredTos;
+import static ru.javawebinar.topjava.util.MealsUtil.getTos;
 import static ru.javawebinar.topjava.util.ValidationUtil.assureIdConsistent;
 import static ru.javawebinar.topjava.util.ValidationUtil.checkNew;
+import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
 import static ru.javawebinar.topjava.web.SecurityUtil.authUserId;
 
 @Controller
@@ -24,51 +27,42 @@ public class MealRestController {
         this.service = service;
     }
 
-    public List<MealTo> getAllFiltered(Filter filter, int caloriesPerDay) {
-        int userId = authUserId();
-        log.info("getAll");
-        return service.getAllFiltered(userId, filter, caloriesPerDay);
+    public List<MealTo> getAllFiltered(String startDate, String startTime,
+                                       String endDate, String endTime) {
+        log.info("getAllFiltered");
+        List<Meal> meals = service.getFilteredByDates(authUserId(),
+                startDate.isEmpty() ? LocalDate.MIN : LocalDate.parse(startDate),
+                endDate.isEmpty() ? LocalDate.MAX : LocalDate.parse(endDate));
+        return getFilteredTos(meals, authUserCaloriesPerDay(),
+                startTime.isEmpty() ? LocalTime.MIN : LocalTime.parse(startTime),
+                endTime.isEmpty() ? LocalTime.MAX : LocalTime.parse(endTime));
     }
 
-    public List<Meal> getAll() {
-        int userId = authUserId();
+    public List<MealTo> getAll() {
         log.info("getAll");
-        return service.getAll(userId);
+        return getTos(service.getAll(authUserId()), authUserCaloriesPerDay());
     }
 
-    public Meal get(int id) throws NotFoundException {
-        int userId = authUserId();
+    public Meal get(int id) {
         log.info("get {}", id);
-        checkOwner(userId, id);
-        return service.get(userId, id);
+        return service.get(authUserId(), id);
     }
 
     public Meal create(Meal meal) {
-        int userId = authUserId();
         log.info("create {}", meal);
         checkNew(meal);
-        return service.create(userId, meal);
+        return service.create(authUserId(), meal);
     }
 
-    public void delete(int mealId) throws NotFoundException {
-        int userId = authUserId();
+    public void delete(int mealId) {
         log.info("delete {}", mealId);
-        checkOwner(userId, mealId);
-        service.delete(userId, mealId);
+        service.delete(authUserId(), mealId);
     }
 
-    public void update(Meal meal, int id) throws NotFoundException {
+    public void update(Meal meal, int id) {
         int userId = authUserId();
         log.info("update {} with id={}", meal, id);
         assureIdConsistent(meal, id);
-        checkOwner(userId, id);
         service.update(userId, meal);
-    }
-
-    private void checkOwner(int userId, int mealId) {
-        Meal meal = service.get(userId, mealId);
-        if (userId != meal.getUserId()) {
-            throw new NotFoundException("You are not allowed to do this");
-        }
     }
 }
