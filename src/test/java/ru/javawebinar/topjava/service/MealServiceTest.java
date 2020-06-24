@@ -13,13 +13,13 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
-import static ru.javawebinar.topjava.util.MealsUtil.getSortedListCombinedOf;
 
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
@@ -43,18 +43,14 @@ public class MealServiceTest {
 
     @Test
     public void getAll() {
-        List<Meal> all = getSortedListCombinedOf(
-                service.getAll(USER_ID).stream(),
-                service.getAll(ADMIN_ID).stream());
-        assertMatch(all, ADMIN_MEAL, USER_MEAL);
+        List<Meal> all = service.getAll(USER_ID);
+        assertMatch(all, USER_MEALS);
     }
 
     @Test
     public void getBetweenInclusive() {
-        List<Meal> all = getSortedListCombinedOf(
-                service.getBetweenInclusive(LocalDate.MIN, USER_MEAL_DATE_TIME.toLocalDate(), USER_ID).stream(),
-                service.getBetweenInclusive(LocalDate.MIN, USER_MEAL_DATE_TIME.toLocalDate(), ADMIN_ID).stream());
-        assertMatch(all, USER_MEAL);
+        List<Meal> filtered = service.getBetweenInclusive(LocalDateTime.MIN, LocalDateTime.of(2020, Month.JANUARY, 30, 11, 0), USER_ID);
+        assertMatch(filtered, FILTERED_USER_MEALS);
     }
 
     @Test
@@ -69,6 +65,11 @@ public class MealServiceTest {
     }
 
     @Test
+    public void getNotExist() throws Exception {
+        assertThrows(NotFoundException.class, () -> service.get(NOT_FOUND, USER_ID));
+    }
+
+    @Test
     public void delete() {
         service.delete(USER_MEAL_ID, USER_ID);
         assertNull(repository.get(USER_MEAL_ID, USER_ID));
@@ -77,6 +78,11 @@ public class MealServiceTest {
     @Test
     public void deleteNotFound() throws Exception {
         assertThrows(NotFoundException.class, () -> service.delete(ADMIN_MEAL_ID, USER_ID));
+    }
+
+    @Test
+    public void deleteNotExist() throws Exception {
+        assertThrows(NotFoundException.class, () -> service.delete(NOT_FOUND, USER_ID));
     }
 
     @Test

@@ -6,6 +6,7 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static ru.javawebinar.topjava.util.DateTimeUtil.atStartOfDayOrMin;
@@ -29,7 +30,11 @@ public class MealService {
         checkNotFoundWithId(repository.delete(id, userId), id);
     }
 
-    public List<Meal> getBetweenInclusive(@Nullable LocalDate startDate, @Nullable LocalDate endDate, int userId) {
+    public List<Meal> getBetweenInclusive(@Nullable LocalDateTime sdt, @Nullable LocalDateTime edt, int userId) {
+        return repository.getBetweenHalfOpen(sdt, edt, userId);
+    }
+
+    public List<Meal> getBetweenInclusiveDates(@Nullable LocalDate startDate, @Nullable LocalDate endDate, int userId) {
         return repository.getBetweenHalfOpen(atStartOfDayOrMin(startDate), atStartOfNextDayOrMax(endDate), userId);
     }
 

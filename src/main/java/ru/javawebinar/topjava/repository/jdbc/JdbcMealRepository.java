@@ -46,7 +46,7 @@ public class JdbcMealRepository implements MealRepository {
             Number newKey = insertMeal.executeAndReturnKey(map);
             meal.setId(newKey.intValue());
         } else if (namedParameterJdbcTemplate.update(
-                "UPDATE meals SET id=:id, date_time=:dateTime, description=:description, " +
+                "UPDATE meals SET date_time=:dateTime, description=:description, " +
                         "calories=:calories WHERE id=:id AND user_id=:userId", map) == 0) {
             return null;
         }
@@ -76,7 +76,8 @@ public class JdbcMealRepository implements MealRepository {
         return jdbcTemplate.query("SELECT * FROM meals" +
                         " WHERE user_id=?" +
                         " AND date_time >=?" +
-                        " AND date_time <?",
+                        " AND date_time <?" +
+                        " ORDER BY date_time DESC",
                 ROW_MAPPER, userId, startDate, endDate);
     }
 }
