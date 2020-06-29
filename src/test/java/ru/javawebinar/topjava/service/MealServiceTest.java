@@ -1,7 +1,12 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runners.model.Statement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
@@ -12,6 +17,9 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -25,6 +33,29 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 @RunWith(SpringRunner.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class MealServiceTest {
+    private static final List<String> testsDuration = new ArrayList<>();
+
+    @Rule
+    public final TestRule loggerRule = new TestRule() {
+        private final Logger logger = Logger.getLogger("TestLogger");
+
+        @Override
+        public Statement apply(Statement statement, Description description) {
+            return new Statement() {
+                @Override
+                public void evaluate() throws Throwable {
+                    long startTime = System.nanoTime();
+                    statement.evaluate();
+                    long stopTime = System.nanoTime();
+                    long duration = stopTime - startTime;
+                    String result = String.format("Test: %s, Duration: %.2f seconds(%d)",
+                            description.getDisplayName(), duration / 1000000000.0, duration);
+                    logger.warning(result);
+                    testsDuration.add(result);
+                }
+            };
+        }
+    };
 
     @Autowired
     private MealService service;
@@ -99,5 +130,11 @@ public class MealServiceTest {
     @Test
     public void getBetweenWithNullDates() throws Exception {
         MEAL_MATCHER.assertMatch(service.getBetweenInclusive(null, null, USER_ID), MEALS);
+    }
+
+    @AfterClass
+    public static void getLoggerData() {
+        System.out.println("\nResults");
+        testsDuration.forEach(System.out::println);
     }
 }
