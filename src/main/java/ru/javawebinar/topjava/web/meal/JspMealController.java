@@ -21,18 +21,20 @@ import static ru.javawebinar.topjava.util.DateTimeUtil.parseLocalTime;
 @RequestMapping("/meals")
 @Controller
 public class JspMealController extends AbstractMealController {
+
     @GetMapping
-    public String getAll(HttpServletRequest request, Model model) {
-        String action = request.getParameter("action");
-        if (action == null || action.isEmpty()) {
-            model.addAttribute("meals", super.getAll());
-        } else {
-            LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
-            LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
-            LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
-            LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
-            model.addAttribute("meals", super.getBetween(startDate, startTime, endDate, endTime));
-        }
+    public String getAll(Model model) {
+        model.addAttribute("meals", super.getAll());
+        return "meals";
+    }
+
+    @GetMapping("/filtered")
+    public String getFiltered(HttpServletRequest request, Model model) {
+        LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
+        LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
+        LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
+        LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
+        model.addAttribute("meals", super.getBetween(startDate, startTime, endDate, endTime));
         return "meals";
     }
 
@@ -54,8 +56,8 @@ public class JspMealController extends AbstractMealController {
         return "mealForm";
     }
 
-    @PostMapping("/sendForm")
-    public String applyForm(HttpServletRequest request) {
+    @PostMapping
+    public String save(HttpServletRequest request) {
         Meal meal = new Meal(
                 LocalDateTime.parse(request.getParameter("dateTime")),
                 request.getParameter("description"),
