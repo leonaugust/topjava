@@ -19,7 +19,7 @@ import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME
 @RequestMapping(value = MealRestController.REST_URL, produces = MediaType.APPLICATION_JSON_VALUE)
 public class MealRestController extends AbstractMealController {
 
-    static final String REST_URL = "/rest/admin/meals";
+    static final String REST_URL = "/rest/meals";
 
     @GetMapping
     public List<MealTo> getAll() {
@@ -53,7 +53,6 @@ public class MealRestController extends AbstractMealController {
                 .buildAndExpand(created.getId()).toUri();
         return ResponseEntity.created(uriOfNewResource).body(created);
     }
-
 
     @GetMapping("/filter")
     public List<MealTo> getBetween(

@@ -40,7 +40,7 @@ public class MealTestData {
     }
 
     public static void assertMatchTos(Iterable<MealTo> actual, Iterable<MealTo> expected) {
-        assertThat(actual).usingElementComparatorIgnoringFields("excess").isEqualTo(expected);
+        assertThat(actual).usingElementComparatorIgnoringFields().isEqualTo(expected);
     }
 
     public static ResultMatcher contentJsonTos(Iterable<MealTo> expected) {

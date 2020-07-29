@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.to;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class MealTo {
     private Integer id;
@@ -63,20 +64,15 @@ public class MealTo {
 
         MealTo mealTo = (MealTo) o;
 
-        if (calories != mealTo.calories) return false;
-        if (excess != mealTo.excess) return false;
-        if (id != null ? !id.equals(mealTo.id) : mealTo.id != null) return false;
-        if (dateTime != null ? !dateTime.equals(mealTo.dateTime) : mealTo.dateTime != null) return false;
-        return description != null ? description.equals(mealTo.description) : mealTo.description == null;
+        return Objects.equals(calories, mealTo.calories) &&
+                Objects.equals(excess, mealTo.excess) &&
+                Objects.equals(id, mealTo.id) &&
+                Objects.equals(dateTime, mealTo.dateTime) &&
+                Objects.equals(description, mealTo.description);
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (dateTime != null ? dateTime.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + calories;
-        result = 31 * result + (excess ? 1 : 0);
-        return result;
+        return Objects.hash(id, dateTime, description, calories, excess);
     }
 }

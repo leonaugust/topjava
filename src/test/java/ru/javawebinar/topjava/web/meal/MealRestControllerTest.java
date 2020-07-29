@@ -14,8 +14,6 @@ import ru.javawebinar.topjava.web.json.JsonUtil;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -23,8 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.TestUtil.readFromJson;
 import static ru.javawebinar.topjava.UserTestData.USER_ID;
-import static ru.javawebinar.topjava.util.MealsUtil.DEFAULT_CALORIES_PER_DAY;
+import static ru.javawebinar.topjava.util.MealsUtil.createTo;
 import static ru.javawebinar.topjava.util.MealsUtil.getTos;
+import static ru.javawebinar.topjava.web.SecurityUtil.authUserCaloriesPerDay;
 
 public class MealRestControllerTest extends AbstractControllerTest {
 
@@ -38,7 +37,7 @@ public class MealRestControllerTest extends AbstractControllerTest {
         perform(MockMvcRequestBuilders.get(REST_URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJsonTos(getTos(MEALS, DEFAULT_CALORIES_PER_DAY)));
+                .andExpect(contentJsonTos(getTos(MEALS, authUserCaloriesPerDay())));
     }
 
     @Test
@@ -68,8 +67,6 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .content(value))
                 .andExpect(status().isNoContent());
 
-        checkFieldsExist(value);
-
         MEAL_MATCHER.assertMatch(mealService.get(MEAL1_ID, USER_ID), updated);
     }
 
@@ -83,8 +80,6 @@ public class MealRestControllerTest extends AbstractControllerTest {
                 .content(value))
                 .andExpect(status().isCreated());
 
-        checkFieldsExist(value);
-
         Meal created = readFromJson(action, Meal.class);
         int newId = created.id();
         newMeal.setId(newId);
@@ -94,15 +89,11 @@ public class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void getBetween() throws Exception {
-        perform(MockMvcRequestBuilders.get(REST_URL + "filter?startDateTime=2020-01-30T07:00&endDateTime=2020-01-30T22:00:00"))
+        perform(MockMvcRequestBuilders.get(REST_URL + "filter")
+                .param("startDateTime", "2020-01-31T17:00")
+                .param("endDateTime", "3037-01-31T22:00"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(contentJsonTos(getTos(List.of(MEAL3, MEAL2, MEAL1), DEFAULT_CALORIES_PER_DAY)));
-    }
-
-    void checkFieldsExist(String value) {
-        assertThat(value, containsString("dateTime"));
-        assertThat(value, containsString("description"));
-        assertThat(value, containsString("calories"));
+                .andExpect(contentJsonTos(List.of(createTo(MEAL7, true))));
     }
 }
